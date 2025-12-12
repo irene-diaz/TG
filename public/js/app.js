@@ -1,32 +1,23 @@
 // public/js/app.js (PARCHE: inicializar después de DOMContentLoaded)
 
-// Datos de alimentos aproximados (por 100g o porción típica; ajusta según necesites)
-const foodData = {
-    // Proteínas altas
-    pollo: { protein: 25, fat: 3, carbs: 0, kcal: 165 },
-    atun: { protein: 25, fat: 1, carbs: 0, kcal: 128 },
-    huevo: { protein: 6, fat: 5, carbs: 0.5, kcal: 70 }, // por huevo
-    tofu: { protein: 8, fat: 4, carbs: 2, kcal: 76 },
-    lentejas: { protein: 9, fat: 0.4, carbs: 20, kcal: 116 },
+// Cargar foodData desde JSON
+let foodData = {}; // Variable global para almacenar los datos
+async function loadFoodData() {
+    try {
+        const response = await fetch('foodData.json'); // Ruta relativa desde public/
+        if (!response.ok) throw new Error('No se pudo cargar foodData.json');
+        foodData = await response.json();
+        console.log('foodData cargado:', Object.keys(foodData).length, 'platos');
+    } catch (error) {
+        console.error('Error cargando foodData:', error);
+        // Fallback: datos básicos si falla
+        foodData = {
+            pollo_arroz_espinacas: { categoria: 'almuerzo', protein: 35, fat: 8, carbs: 45, kcal: 380 },
+            // Añade más si quieres
+        };
+    }
+}
 
-    // Carbohidratos altos
-    arroz: { protein: 2.5, fat: 0.3, carbs: 25, kcal: 130 }, // cocido
-    avena: { protein: 3, fat: 1.5, carbs: 12, kcal: 68 },
-    pan_integral: { protein: 3, fat: 1, carbs: 12, kcal: 69 }, // por rebanada
-    patata: { protein: 2, fat: 0.1, carbs: 17, kcal: 77 },
-    banana: { protein: 1, fat: 0.3, carbs: 23, kcal: 89 },
-
-    // Grasas altas
-    aguacate: { protein: 2, fat: 15, carbs: 9, kcal: 160 },
-    nueces: { protein: 6, fat: 18, carbs: 4, kcal: 207 }, // por 30g
-    aceite_oliva: { protein: 0, fat: 14, carbs: 0, kcal: 119 }, // por cucharada
-    queso: { protein: 7, fat: 9, carbs: 1, kcal: 113 }, // por 30g
-
-    // Otros (vegetales, etc.)
-    espinacas: { protein: 3, fat: 0.4, carbs: 4, kcal: 23 },
-    brocoli: { protein: 3, fat: 0.4, carbs: 7, kcal: 34 },
-    yogurt: { protein: 4, fat: 1, carbs: 6, kcal: 61 }, // natural
-};
 // Init AOS (se inicializa dentro de DOMContentLoaded más abajo también por seguridad)
 function safeInitAOS() {
     try {
@@ -64,27 +55,30 @@ function generarMenuDiario(macrosObjetivo, dia) {
         snacks: { protein: macrosObjetivo.proteinG * 0.1, fat: macrosObjetivo.fatG * 0.1, carbs: macrosObjetivo.carbsG * 0.1 }
     };
 
-    // Función auxiliar para seleccionar alimentos y calcular porciones
-    function seleccionarAlimento(tipo, objetivo) {
-        let alimentos;
-        if (tipo === 'protein') alimentos = ['pollo', 'atun', 'huevo', 'tofu', 'lentejas'];
-        else if (tipo === 'carbs') alimentos = ['arroz', 'avena', 'pan_integral', 'patata', 'banana'];
-        else if (tipo === 'fat') alimentos = ['aguacate', 'nueces', 'aceite_oliva', 'queso'];
-        else alimentos = Object.keys(foodData);
+    // Función auxiliar para seleccionar un plato completo por categoría
+    function seleccionarPlato(categoria) {
+        // Acceder directamente a la categoría en foodData (nueva estructura)
+        const platosEnCategoria = foodData[categoria];
+        if (!platosEnCategoria) {
+            console.warn(`No hay platos para la categoría: ${categoria}`);
+            return { nombre: 'Plato no disponible', porcion: 200, macros: { protein: 0, fat: 0, carbs: 0, kcal: 0 } };
+        }
 
-        const alimento = alimentos[Math.floor(Math.random() * alimentos.length)];
-        const data = foodData[alimento];
-        // Calcular porción aproximada para alcanzar el objetivo (simple: dividir objetivo por macro del alimento)
-        const porcion = Math.max(1, Math.round(objetivo / data[tipo] * 100)); // en gramos o unidades
-        return { nombre: alimento, porcion, macros: { protein: data.protein * (porcion / 100), fat: data.fat * (porcion / 100), carbs: data.carbs * (porcion / 100) } };
+        const platoKeys = Object.keys(platosEnCategoria);
+        const platoKey = platoKeys[Math.floor(Math.random() * platoKeys.length)];
+        const data = platosEnCategoria[platoKey];
+        const porcion = 200; // g, asumiendo un plato estándar
+        return { nombre: platoKey.replace(/_/g, ' '), porcion, macros: data };
     }
-
     // Generar comidas
+    // Generar comidas (cada una es un plato completo)
     const menu = {
-        desayuno: [seleccionarAlimento('protein', distribucion.desayuno.protein), seleccionarAlimento('carbs', distribucion.desayuno.carbs)],
-        almuerzo: [seleccionarAlimento('protein', distribucion.almuerzo.protein), seleccionarAlimento('carbs', distribucion.almuerzo.carbs), seleccionarAlimento('fat', distribucion.almuerzo.fat)],
-        cena: [seleccionarAlimento('protein', distribucion.cena.protein), seleccionarAlimento('carbs', distribucion.cena.carbs)],
-        snacks: [seleccionarAlimento('fat', distribucion.snacks.fat), seleccionarAlimento('carbs', distribucion.snacks.carbs)]
+        desayuno: [seleccionarPlato('desayuno')],
+        almuerzo: [seleccionarPlato('almuerzo')],
+        media_manana: [seleccionarPlato('media_manana')],  // Corregido: sin ñ
+        cena: [seleccionarPlato('cena')],
+        merienda: [seleccionarPlato('merienda')],
+        snacks: [seleccionarPlato('snacks')]
     };
 
     return menu;
@@ -101,7 +95,8 @@ function generarMenuSemanal(macrosObjetivo) {
 // Helper seguro
 function $id(id) { return document.getElementById(id) || null; }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadFoodData(); // Cargar datos antes de inicializar
     // Inicializa AOS si está disponible
     safeInitAOS();
 
@@ -171,16 +166,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Generar menú semanal basado en res
                     const menuSemanal = generarMenuSemanal(res);
 
+
                     // Construir HTML para el menú
                     let menuHtml = '<h6>Menú semanal sugerido</h6><div class="menu-semanal">';
-                    for (const [dia, comidas] of Object.entries(menuSemanal)) {
+                    for (const [dia, comidas] of Object.entries(menuSemanal)) {  // Loop por días
                         menuHtml += `<div class="dia-menu"><h7>${dia}</h7>`;
-                        for (const [comida, alimentos] of Object.entries(comidas)) {
-                            menuHtml += `<p><strong>${comida.charAt(0).toUpperCase() + comida.slice(1)}:</strong> `;
-                            alimentos.forEach(alimento => {
-                                menuHtml += `${alimento.porcion}g ${alimento.nombre.replace('_', ' ')}, `;
-                            });
-                            menuHtml = menuHtml.slice(0, -2) + '.</p>'; // Quitar coma final
+                        for (const [comida, platos] of Object.entries(comidas)) {  // Loop por comidas dentro del día
+                            const plato = platos[0]; // Solo hay un plato por comida
+                            menuHtml += `<p><strong>${comida.charAt(0).toUpperCase() + comida.slice(1)}:</strong> ${plato.nombre} (${plato.porcion}g).</p>`;
                         }
                         menuHtml += '</div>';
                     }
@@ -574,8 +567,8 @@ function safeInitAuthAndApi() {
                     inner += '<h6>Menú semanal guardado:</h6>';
                     for (const [dia, comidas] of Object.entries(rd.menu)) {
                         inner += `<div><strong>${dia}:</strong>`;
-                        for (const [comida, alimentos] of Object.entries(comidas)) {
-                            inner += `<p>${comida}: ${alimentos.map(a => `${a.porcion}g ${a.nombre}`).join(', ')}.</p>`;
+                        for (const [comida, platos] of Object.entries(comidas)) {
+                            inner += `<p>${comida}: ${platos[0].nombre} (${platos[0].porcion}g).</p>`;
                         }
                         inner += '</div>';
                     }
