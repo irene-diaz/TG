@@ -30,6 +30,15 @@ db.serialize(() => {
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     UNIQUE(user_id)
   )`);
+    db.run(`CREATE TABLE IF NOT EXISTS results(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        result_data TEXT NOT NULL, --JSON con resultados del análisis
+    summary TEXT, --opcional: texto corto para listados
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+  )`);
+    db.run(`CREATE INDEX IF NOT EXISTS idx_results_user_id ON results(user_id)`);
 });
 
 const app = express();
@@ -167,4 +176,96 @@ app.get('/api/me', authMiddleware, (req, res) => {
 });
 
 const PORT = process.env.PORT || 4000;
+// ------------------ RESULTS endpoints (protected) ------------------
+
+// Crear resultado (guardar plan)
+app.post('/api/results', authMiddleware, (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { resultData, summary } = req.body || {};
+        if (!resultData) return res.status(400).json({ error: 'Faltan datos: resultData' });
+
+        let json;
+        try { json = JSON.stringify(resultData); } catch (e) {
+            return res.status(400).json({ error: 'resultData no serializable a JSON' });
+        }
+
+        const stmt = db.prepare('INSERT INTO results (user_id, result_data, summary) VALUES (?, ?, ?)');
+        stmt.run(userId, json, summary || null, function (err) {
+            if (err) {
+                console.error('INSERT results error', err);
+                return res.status(500).json({ error: 'Error guardando resultado' });
+            }
+            return res.status(201).json({ id: this.lastID, created_at: new Date().toISOString() });
+        });
+    } catch (err) {
+        console.error('POST /api/results', err);
+        res.status(500).json({ error: 'Error interno' });
+    }
+});
+
+// Listar resultados del usuario (paginado)
+app.get('/api/results', authMiddleware, (req, res) => {
+    try {
+        const userId = req.user.id;
+        const page = Math.max(parseInt(req.query.page || '1', 10), 1);
+        const perPage = Math.min(parseInt(req.query.perPage || '20', 10), 100);
+        const offset = (page - 1) * perPage;
+
+        db.all(
+            'SELECT id, summary, created_at FROM results WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
+            [userId, perPage, offset],
+            (err, rows) => {
+                if (err) {
+                    console.error('GET /api/results db.all error', err);
+                    return res.status(500).json({ error: 'Error leyendo resultados' });
+                }
+                res.json({ results: rows || [], page });
+            }
+        );
+    } catch (err) {
+        console.error('GET /api/results', err);
+        res.status(500).json({ error: 'Error interno' });
+    }
+});
+
+// Obtener detalle de un resultado (comprueba owner)
+app.get('/api/results/:id', authMiddleware, (req, res) => {
+    try {
+        const userId = req.user.id;
+        const id = req.params.id;
+        db.get('SELECT * FROM results WHERE id = ? AND user_id = ?', [id, userId], (err, row) => {
+            if (err) {
+                console.error('GET /api/results/:id error', err);
+                return res.status(500).json({ error: 'Error DB' });
+            }
+            if (!row) return res.status(404).json({ error: 'No encontrado' });
+            try { row.result_data = JSON.parse(row.result_data); } catch (e) { /* dejar string si corrupto */ }
+            res.json(row);
+        });
+    } catch (err) {
+        console.error('GET /api/results/:id', err);
+        res.status(500).json({ error: 'Error interno' });
+    }
+});
+
+// Eliminar resultado (owner only)
+app.delete('/api/results/:id', authMiddleware, (req, res) => {
+    try {
+        const userId = req.user.id;
+        const id = req.params.id;
+        db.run('DELETE FROM results WHERE id = ? AND user_id = ?', [id, userId], function (err) {
+            if (err) {
+                console.error('DELETE /api/results/:id error', err);
+                return res.status(500).json({ error: 'Error DB' });
+            }
+            if (this.changes === 0) return res.status(404).json({ error: 'No encontrado o sin permiso' });
+            res.json({ ok: true });
+        });
+    } catch (err) {
+        console.error('DELETE /api/results/:id', err);
+        res.status(500).json({ error: 'Error interno' });
+    }
+});
+
 app.listen(PORT, () => console.log(`API escuchando en http://localhost:${PORT}`));
