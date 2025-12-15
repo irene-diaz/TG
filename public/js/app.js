@@ -92,6 +92,174 @@ function generarMenuSemanal(macrosObjetivo) {
     }
     return semana;
 }
+
+// Nueva función: generar plan de entrenamiento semanal personalizado
+function generarPlanEntrenamiento(formData) {
+    const { goal, activityFactor, age, weight, height, sex } = formData;
+    const semana = {};
+
+    // Ajustes basados en datos
+    const esSedentario = activityFactor <= 1.375;
+    const esActivo = activityFactor >= 1.725;
+    const esJoven = age < 30;
+    const esPesado = weight > 80;
+    const esMujer = sex === 'female';
+    const impactoBajo = !esJoven || esPesado; // Baja impacto para mayores o pesados
+
+    // Función auxiliar para ajustar intensidad
+    const ajustarIntensidad = (ejercicio) => {
+        if (impactoBajo) return ejercicio.replace('pesos libres', 'máquina o banda elástica');
+        if (esActivo) return ejercicio + ' (aumenta peso si es fácil)';
+        return ejercicio;
+    };
+
+    for (let dia = 1; dia <= 7; dia++) {
+        let entrenamiento = '';
+
+        if (dia === 4 || dia === 7) {
+            // Días de descanso: movilidad o recuperación
+            entrenamiento = 'Descanso / Movilidad: Estiramientos dinámicos (10 min), yoga ligero o caminata suave (20-30 min).';
+        } else {
+            let ejercicios = [];
+            let foco = '';
+
+            switch (goal) {
+                case 'loss':
+                    // Énfasis en cardio y fuerza ligera para quemar calorías
+                    foco = 'Pérdida de peso: Cardio + fuerza ligera';
+                    if (dia === 1) {
+                        ejercicios = [
+                            ajustarIntensidad('Sentadillas: 3 series de 12 repeticiones (sin peso o con mancuernas ligeras)'),
+                            'Burpees: 3 series de 10 repeticiones',
+                            'Plancha: 3 series de 30 segundos',
+                            'Caminadora o bici: 20-30 min a ritmo moderado'
+                        ];
+                    } else if (dia === 2) {
+                        ejercicios = [
+                            'Saltos de cuerda: 3 series de 2 min',
+                            ajustarIntensidad('Flexiones de brazos: 3 series de 10 repeticiones'),
+                            'Mountain climbers: 3 series de 20 repeticiones por pierna',
+                            'Cardio HIIT: 20 min (alternar 30 seg sprint / 30 seg descanso)'
+                        ];
+                    } else if (dia === 3) {
+                        ejercicios = [
+                            ajustarIntensidad('Peso muerto rumano: 3 series de 10 repeticiones'),
+                            'Remo con banda elástica: 3 series de 12 repeticiones',
+                            'Abdominales: 3 series de 15 repeticiones',
+                            'Caminata rápida: 30 min'
+                        ];
+                    } else if (dia === 5) {
+                        ejercicios = [
+                            'Circuito: Saltos, flexiones, sentadillas (3 rondas de 10 cada uno)',
+                            'Plancha lateral: 3 series de 20 seg por lado',
+                            'Bicicleta estática: 25 min'
+                        ];
+                    } else if (dia === 6) {
+                        ejercicios = [
+                            ajustarIntensidad('Press de hombros: 3 series de 12 repeticiones'),
+                            'Elevaciones laterales: 3 series de 12 repeticiones',
+                            'Cardio mixto: 30 min (correr/caminar)'
+                        ];
+                    }
+                    break;
+                case 'gain':
+                    // Énfasis en fuerza e hipertrofia para ganar masa
+                    foco = 'Ganancia muscular: Fuerza + hipertrofia';
+                    if (dia === 1) {
+                        ejercicios = [
+                            ajustarIntensidad('Sentadillas: 4 series de 8-10 repeticiones (con barra o mancuernas)'),
+                            ajustarIntensidad('Press de banca: 4 series de 8 repeticiones'),
+                            'Remo con barra: 3 series de 10 repeticiones',
+                            'Fondos en paralelas: 3 series de 10 repeticiones'
+                        ];
+                    } else if (dia === 2) {
+                        ejercicios = [
+                            ajustarIntensidad('Peso muerto: 4 series de 6-8 repeticiones'),
+                            'Elevaciones de talones: 3 series de 12 repeticiones',
+                            'Curl de bíceps: 3 series de 10 repeticiones',
+                            'Extensiones de tríceps: 3 series de 10 repeticiones'
+                        ];
+                    } else if (dia === 3) {
+                        ejercicios = [
+                            ajustarIntensidad('Press militar: 4 series de 8 repeticiones'),
+                            'Dominadas asistidas: 3 series de 8 repeticiones',
+                            'Abdominales con peso: 3 series de 12 repeticiones',
+                            'Puente de glúteos: 3 series de 15 repeticiones'
+                        ];
+                    } else if (dia === 5) {
+                        ejercicios = [
+                            ajustarIntensidad('Sentadillas frontales: 4 series de 8 repeticiones'),
+                            'Press inclinado: 3 series de 10 repeticiones',
+                            'Tirón a una mano: 3 series de 10 repeticiones por lado'
+                        ];
+                    } else if (dia === 6) {
+                        ejercicios = [
+                            'Circuito de fuerza: Sentadillas, press, remo (3 rondas de 8-10 cada uno)',
+                            'Cardio ligero: 15 min para recuperación'
+                        ];
+                    }
+                    break;
+                case 'maintain':
+                default:
+                    // Mix equilibrado
+                    foco = 'Mantenimiento: Mix de fuerza y cardio';
+                    if (dia === 1) {
+                        ejercicios = [
+                            ajustarIntensidad('Sentadillas: 3 series de 10 repeticiones'),
+                            ajustarIntensidad('Press de banca: 3 series de 10 repeticiones'),
+                            'Plancha: 3 series de 45 segundos',
+                            'Caminata: 20 min'
+                        ];
+                    } else if (dia === 2) {
+                        ejercicios = [
+                            'Burpees modificados: 3 series de 8 repeticiones',
+                            ajustarIntensidad('Remo: 3 series de 12 repeticiones'),
+                            'Abdominales: 3 series de 20 repeticiones',
+                            'Bicicleta: 25 min'
+                        ];
+                    } else if (dia === 3) {
+                        ejercicios = [
+                            ajustarIntensidad('Peso muerto: 3 series de 10 repeticiones'),
+                            'Flexiones: 3 series de 12 repeticiones',
+                            'Elevaciones laterales: 3 series de 12 repeticiones'
+                        ];
+                    } else if (dia === 5) {
+                        ejercicios = [
+                            ajustarIntensidad('Press de hombros: 3 series de 10 repeticiones'),
+                            'Dominadas: 3 series de 6-8 repeticiones',
+                            'Circuito cardio: 20 min'
+                        ];
+                    } else if (dia === 6) {
+                        ejercicios = [
+                            'Circuito mixto: Saltos, flexiones, sentadillas (3 rondas)',
+                            'Estiramientos: 10 min'
+                        ];
+                    }
+                    break;
+            }
+
+            // Ajustes adicionales por sexo
+            if (esMujer && goal === 'gain') {
+                // Más foco en glúteos/core para mujeres
+                ejercicios.push('Puente de glúteos: 3 series de 15 repeticiones');
+            }
+
+            // Ajustes por actividad
+            if (esSedentario) {
+                ejercicios.push('Añade 10-15 min de cardio extra al final');
+            }
+
+            // Formatear el día
+            entrenamiento = `${foco}\n- ${ejercicios.join('\n- ')}\nNota: Calienta 5 min antes. Descansa 60-90 seg entre series. Consulta a un entrenador si eres principiante.`;
+        }
+
+        semana[`Día ${dia}`] = entrenamiento;
+    }
+
+    return semana;
+}
+
+
 // Helper seguro
 function $id(id) { return document.getElementById(id) || null; }
 
@@ -139,6 +307,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) { console.error('Parallax setup error:', e); }
 
     // MACROS: listener de submit (si existe)
+    // MACROS: listener de submit (si existe)
     try {
         const macrosForm = $id('macrosForm');
         if (macrosForm) {
@@ -154,50 +323,63 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     if (!age || !weight || !height) { alert('Introduce edad, peso y altura válidos.'); return; }
 
-                    // ... (código anterior: calcular res y html de macros) ...
                     const res = calcularMacros({ sex, age, weight, height, activityFactor, goal });
 
                     const html = `
-                        <div class="result-item"><div>Proteínas</div><div><strong>${res.proteinG} g</strong> · ${res.proteinCal} kcal</div></div>
-                        <div class="result-item"><div>Grasas</div><div><strong>${res.fatG} g</strong> · ${res.fatCal} kcal</div></div>
-                        <div class="result-item"><div>Carbohidratos</div><div><strong>${res.carbsG} g</strong> · ${Math.round(res.calories - (res.proteinCal + res.fatCal))} kcal</div></div>
-                        `;
-                    // Ahora sí, generar menú semanal basado en res
+                    <div class="result-item"><div>Proteínas</div><div><strong>${res.proteinG} g</strong> · ${res.proteinCal} kcal</div></div>
+                    <div class="result-item"><div>Grasas</div><div><strong>${res.fatG} g</strong> · ${res.fatCal} kcal</div></div>
+                    <div class="result-item"><div>Carbohidratos</div><div><strong>${res.carbsG} g</strong> · ${Math.round(res.calories - (res.proteinCal + res.fatCal))} kcal</div></div>
+                    `;
+
                     // Generar menú semanal basado en res
                     const menuSemanal = generarMenuSemanal(res);
 
+                    // Generar plan de entrenamiento personalizado
+                    const formData = { sex, goal, age, weight, height, activityFactor };
+                    const planEntrenamiento = generarPlanEntrenamiento(formData);
 
                     // Construir HTML para el menú
                     let menuHtml = '<h6>Menú semanal sugerido</h6><div class="menu-semanal">';
-                    for (const [dia, comidas] of Object.entries(menuSemanal)) {  // Loop por días
+                    for (const [dia, comidas] of Object.entries(menuSemanal)) {
                         menuHtml += `<div class="dia-menu"><h7>${dia}</h7>`;
-                        for (const [comida, platos] of Object.entries(comidas)) {  // Loop por comidas dentro del día
-                            const plato = platos[0]; // Solo hay un plato por comida
+                        for (const [comida, platos] of Object.entries(comidas)) {
+                            const plato = platos[0];
                             menuHtml += `<p><strong>${comida.charAt(0).toUpperCase() + comida.slice(1)}:</strong> ${plato.nombre} (${plato.porcion}g).</p>`;
                         }
                         menuHtml += '</div>';
                     }
                     menuHtml += '</div>';
 
+                    // Construir HTML para el plan de entrenamiento
+                    let entrenamientoHtml = '<h6>Plan de entrenamiento semanal</h6><ul class="small mb-0">';
+                    for (const [dia, actividad] of Object.entries(planEntrenamiento)) {
+                        entrenamientoHtml += `<li><strong>${dia}:</strong> ${actividad}</li>`;
+                    }
+                    entrenamientoHtml += '</ul>';
+
                     // Añadir al HTML de resultCard
                     const resultCard = $id('resultCard');
                     if (resultCard) {
                         const existingMenu = resultCard.querySelector('.menu-semanal');
-                        if (existingMenu) existingMenu.remove(); // Evitar duplicados
+                        if (existingMenu) existingMenu.remove();
                         resultCard.insertAdjacentHTML('beforeend', menuHtml);
+                        const existingPlan = resultCard.querySelector('h6 + ul');
+                        if (existingPlan) existingPlan.outerHTML = entrenamientoHtml;
+                        else resultCard.insertAdjacentHTML('beforeend', entrenamientoHtml);
                     }
 
-                    // Guardar en localStorage (incluyendo menú)
+                    // Guardar en localStorage
                     const lastPlan = {
-                        form: { sex, goal, age, weight, height, activityFactor },
+                        form: formData,
                         macros: res,
-                        menu: menuSemanal, // Añadir menú
-                        html: html + menuHtml // Incluir en el HTML guardado
+                        menu: menuSemanal,
+                        entrenamiento: planEntrenamiento,
+                        html: html + menuHtml + entrenamientoHtml
                     };
                     localStorage.setItem('miplan_lastPlan', JSON.stringify(lastPlan));
+
                     const caloriesText = $id('caloriesText');
                     const macrosList = $id('macrosList');
-                    // ... (resto del código: mostrar en DOM, guardar en perfil, etc.) ...
 
                     if (caloriesText) caloriesText.textContent = `Calorías diarias: ${res.calories} kcal · (TDEE aprox. ${res.tdee} kcal)`;
                     if (macrosList) macrosList.innerHTML = html;
@@ -206,18 +388,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                         resultCard.scrollIntoView({ behavior: 'smooth' });
                     }
 
-                    // intento de guardado
+                    // Guardado en perfil
                     const token = getToken();
                     if (token) {
                         const ok = await saveProfile({ macros: { ...res, html } });
                         if (ok) console.log('Macros guardadas en perfil');
                     }
-                } catch (innerE) { console.error('Error manejando macros submit:', innerE); }
+                } catch (innerE) {
+                    console.error('Error manejando macros submit:', innerE);
+                    alert('Error calculando el plan. Revisa la consola para detalles.');
+                }
             });
         } else {
             console.info('No hay formulario #macrosForm en esta página (no se añade listener).');
         }
-    } catch (e) { console.error('Error asociado al listener del formulario macros:', e); }
+    } catch (e) {
+        console.error('Error asociado al listener del formulario macros:', e);
+    }
 
     // Reset
     try {
@@ -559,12 +746,32 @@ function safeInitAuthAndApi() {
                 const rd = json.result_data;
                 const pretty = escapeHtml(JSON.stringify(rd, null, 2));
 
-                // construir vista amigable: muestra macros si existen
-                let inner = `<pre style="white-space:pre-wrap; word-break:break-word; background:#f7f7f7; padding:10px; border-radius:6px; max-height:320px; overflow:auto;">${pretty}</pre>`;
+                // construir vista amigable: resumen del formulario y resultados
+                let inner = '<h6>Resumen del plan:</h6>';
+
+                // Resumen del formulario
+                if (rd.form) {
+                    inner += '<div class="mb-3"><strong>Datos del formulario:</strong><br>';
+                    inner += `Sexo: ${rd.form.sex === 'male' ? 'Hombre' : 'Mujer'}<br>`;
+                    inner += `Objetivo: ${rd.form.goal === 'loss' ? 'Perder peso' : rd.form.goal === 'gain' ? 'Ganar masa' : 'Mantener'}<br>`;
+                    inner += `Edad: ${rd.form.age} años<br>`;
+                    inner += `Peso: ${rd.form.weight} kg<br>`;
+                    inner += `Altura: ${rd.form.height} cm<br>`;
+                    inner += `Nivel de actividad: ${rd.form.activityFactor === '1.2' ? 'Sedentario' : rd.form.activityFactor === '1.375' ? 'Ligero' : rd.form.activityFactor === '1.55' ? 'Moderado' : rd.form.activityFactor === '1.725' ? 'Activo' : 'Muy activo'}</div>`;
+                }
+
+                // Resumen de macros
+                if (rd.macros) {
+                    inner += '<div class="mb-3"><strong>Resultados calculados:</strong><br>';
+                    inner += `Calorías diarias: ${rd.macros.calories} kcal (TDEE aprox. ${rd.macros.tdee} kcal)<br>`;
+                    inner += `Proteínas: ${rd.macros.proteinG} g (${rd.macros.proteinCal} kcal)<br>`;
+                    inner += `Grasas: ${rd.macros.fatG} g (${rd.macros.fatCal} kcal)<br>`;
+                    inner += `Carbohidratos: ${Math.round((rd.macros.calories - rd.macros.proteinCal - rd.macros.fatCal) / 4)} g (${Math.round(rd.macros.calories - rd.macros.proteinCal - rd.macros.fatCal)} kcal)</div>`;
+                }
 
                 // Añadir menú si existe
                 if (rd.menu) {
-                    inner += '<h6>Menú semanal guardado:</h6>';
+                    inner += '<h6>Menú semanal sugerido:</h6>';
                     for (const [dia, comidas] of Object.entries(rd.menu)) {
                         inner += `<div><strong>${dia}:</strong>`;
                         for (const [comida, platos] of Object.entries(comidas)) {
@@ -574,8 +781,16 @@ function safeInitAuthAndApi() {
                     }
                 }
 
-                inner += `<div class="mt-2 d-flex gap-2"><button class="btn btn-sm btn-outline-secondary download-json">Descargar JSON</button>
-    <button class="btn btn-sm btn-outline-dark copy-json">Copiar JSON</button></div>`;
+                // Añadir entrenamiento si existe
+                if (rd.entrenamiento) {
+                    inner += '<h6>Plan de entrenamiento semanal:</h6>';
+                    for (const [dia, actividad] of Object.entries(rd.entrenamiento)) {
+                        inner += `<div><strong>${dia}:</strong><br>${actividad.replace(/\n/g, '<br>')}</div>`;
+                    }
+                }
+
+                inner += `<div class="mt-2 d-flex gap-2"><button class="btn btn-sm btn-outline-secondary download-json">Descargar JSON completo</button>
+<button class="btn btn-sm btn-outline-dark copy-json">Copiar JSON completo</button></div>`;
                 detailArea.innerHTML = inner;
 
                 // handlers for download / copy
@@ -593,7 +808,7 @@ function safeInitAuthAndApi() {
                 detailArea.querySelector('.copy-json').addEventListener('click', async () => {
                     try {
                         await navigator.clipboard.writeText(JSON.stringify(rd, null, 2));
-                        alert('JSON copiado al portapapeles.');
+                        alert('JSON completo copiado al portapapeles.');
                     } catch (e) { alert('No se pudo copiar al portapapeles.'); }
                 });
 
