@@ -1,19 +1,20 @@
 // server.js
-const express = require('express');
-const sqlite3 = require('sqlite3');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const path = require('path');
+const express = require('express'); //framework para crear el servidor y las rutas
+const sqlite3 = require('sqlite3'); //permite conectar con la base de datos
+const bcrypt = require('bcrypt'); //cifra contraseñas (seguridad)
+const jwt = require('jsonwebtoken'); //crea tokens para la autenticación
+const bodyParser = require('body-parser'); //lee datos JSON enviados desde el frontend
+const cors = require('cors'); //permite que el frontend se comunique con el backend
+const path = require('path'); //gestiona rutas de archivos
 
-const DB_FILE = path.join(__dirname, 'data.db');
-const JWT_SECRET = process.env.JWT_SECRET || 'CAMBIA_ESTE_SECRETO_EN_PRODUC'; // cambia en producción
-const TOKEN_EXPIRES = '7d';
+const DB_FILE = path.join(__dirname, 'data.db'); //Define dónde está la base de datos
+const JWT_SECRET = process.env.JWT_SECRET || 'CAMBIA_ESTE_SECRETO_EN_PRODUC'; //Define la clave secreta para firmar los tokens
+const TOKEN_EXPIRES = '7d'; //establece el tiempo que dura la sesion
 
+//abrimos la base de datos para poder hacer consultas SQL
 const db = new sqlite3.Database(DB_FILE);
 
-// Inicializar tablas
+// Inicializar tablas(por si acaso la base de datos esta vacia, la inicializamos desde el backend)
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,11 +42,12 @@ db.serialize(() => {
     db.run(`CREATE INDEX IF NOT EXISTS idx_results_user_id ON results(user_id)`);
 });
 
-const app = express();
-app.use(cors());
-app.use(bodyParser.json());
 
-// servir archivos estáticos desde la carpeta "public" (css, js, img, index.html)
+const app = express(); //crea el servidor
+app.use(cors()); //permite peticiones desde el frontend
+app.use(bodyParser.json()); //permite recibir datos en formato JSON
+
+// servir archivos estáticos desde la carpeta "public" (css, js, img, index.html), html, css y js
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Forzar entrega de public/index.html en la raíz (útil para SPA / fallback)
@@ -54,12 +56,12 @@ app.get('/', (req, res) => {
 });
 
 
-// Util: crear token
+// crear token(clave temporal)
 function createToken(user) {
     return jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: TOKEN_EXPIRES });
 }
 
-// Middleware auth
+// Middleware auth(Comprueba si el usuario ha enviado un token, verifica que el token sea válido, permite o bloquea el acceso a rutas protegidas)
 function authMiddleware(req, res, next) {
     const auth = req.headers['authorization'];
     if (!auth) return res.status(401).json({ error: 'No token' });
@@ -73,7 +75,7 @@ function authMiddleware(req, res, next) {
     });
 }
 
-// Registro
+// Registro(Recibe email y contraseña, cifra la contraseña con bcrypt, guarda el usuario en la BD y evuelve un token)
 app.post('/api/register', async (req, res) => {
     try {
         const { email, password, name } = req.body;
@@ -97,7 +99,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// Login
+// Login(Busca el usuario por email, compara la contraseña cifrada y devuelve un token si es correcto)
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
@@ -115,7 +117,7 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Obtener perfil (protected)
+// Obtener perfil del usuario(Guarda y recupera los datos del formulario, usa JSON para flexibilidad y protegido por autenticación)
 app.get('/api/profile', authMiddleware, (req, res) => {
     const userId = req.user.id;
     db.get('SELECT data, updated_at FROM profiles WHERE user_id = ?', [userId], (err, row) => {
@@ -130,7 +132,7 @@ app.get('/api/profile', authMiddleware, (req, res) => {
     });
 });
 
-// Guardar/actualizar perfil (protected)
+// Guarda planes personalizados
 app.post('/api/profile', authMiddleware, (req, res) => {
     const userId = req.user.id;
     const dataObj = req.body.data || {};
@@ -145,7 +147,7 @@ app.post('/api/profile', authMiddleware, (req, res) => {
         function (err) {
             // Not all SQLite versions accept ON CONFLICT with user_id unless unique; safe approach: try get+insert/update
             if (err) {
-                // fallback: ver si hay fila y actualizar/inserter manualmente
+                // fallback: ver si hay fila y actualizar/insertasr manualmente
                 db.get('SELECT id FROM profiles WHERE user_id = ?', [userId], (e, row) => {
                     if (e) return res.status(500).json({ error: 'Error DB' });
                     if (row) {
@@ -167,7 +169,7 @@ app.post('/api/profile', authMiddleware, (req, res) => {
     );
 });
 
-// (Opcional) endpoint para obtener info del usuario
+// endpoint para obtener info del usuario
 app.get('/api/me', authMiddleware, (req, res) => {
     db.get('SELECT id, email, name, created_at FROM users WHERE id = ?', [req.user.id], (err, row) => {
         if (err) return res.status(500).json({ error: 'Error DB' });
@@ -268,4 +270,5 @@ app.delete('/api/results/:id', authMiddleware, (req, res) => {
     }
 });
 
+//Arranca la API en el puerto indicado(variable la cual hemos definido antes)
 app.listen(PORT, () => console.log(`API escuchando en http://localhost:${PORT}`));

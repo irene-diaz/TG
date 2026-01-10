@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1220">
+  <title>MiplanFitness — Entrena. Come. Transforma.</title>
+  <meta name="description"
+    content="MiplanFitness: entrena, come y transforma tu cuerpo con planes personalizados de nutrición y entrenamiento.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="src/img/favicon.png">
+
+  <!-- Incluye tu app.js con defer (asegura que tus handlers se registren) -->
+  <script src="/js/app.js" defer></script>
+
+  <!-- Bootstrap (CDN) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Fonts & AOS -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700;800&family=Inter:wght@300;500;700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
+  <!-- Tu CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Scripts deferidos -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js" defer></script>
+</head>
+
+<body>
+
+  <!-- Skip link para accesibilidad -->
+  <a class="skip-link visually-hidden-focusable" href="#main">Saltar al contenido</a>
+
+  <!-- NAV -->
+  <header>
+    <nav id="siteNav" class="navbar navbar-expand-lg default" role="navigation" aria-label="Menú principal">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="#" aria-label="Ir al inicio">
+          <img src="src/img/logo.png" alt="Logo MiplanFitness" width="38" height="38" loading="lazy">
+          <span>MiplanFitness</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain"
+          aria-controls="navMain" aria-expanded="false" aria-label="Abrir menú">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto align-items-lg-center">
+            <li class="nav-item"><a class="nav-link" href="#home">Inicio</a></li>
+            <li class="nav-item"><a class="nav-link" href="#about">Sobre</a></li>
+            <li class="nav-item"><a class="nav-link" href="#services">Servicios</a></li>
+            <li class="nav-item"><a class="nav-link" href="#testimonials">Testimonios</a></li>
+            <li class="nav-item"><a class="nav-link" href="#macros">Mide tus macros</a></li>
+            <li class="nav-item"><a class="nav-link" href="#contact">Contacto</a></li>
+
+            <!-- Botones por defecto (esconder/mostrar con JS si el usuario está logueado) -->
+            <li class="nav-item ms-2 d-lg-flex d-none">
+              <a class="btn btn-outline-dark btn-sm me-2" href="#" data-bs-toggle="modal"
+                data-bs-target="#modalLogin">Entrar</a>
+              <a class="btn btn-cta btn-sm" href="#" data-bs-toggle="modal"
+                data-bs-target="#modalRegister">Regístrate</a>
+            </li>
+
+            <!-- en mobile irán como items normales dentro del collapse -->
+            <li class="nav-item d-lg-none"><a class="nav-link" href="#" data-bs-toggle="modal"
+                data-bs-target="#modalLogin">Entrar</a></li>
+            <li class="nav-item d-lg-none"><a class="nav-link" href="#" data-bs-toggle="modal"
+                data-bs-target="#modalRegister">Regístrate</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Modales (Login / Register) -->
+  <!-- REGISTER -->
+  <div class="modal fade" id="modalRegister" tabindex="-1" aria-hidden="true" aria-labelledby="modalRegisterLabel">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalRegisterLabel">Regístrate</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formRegister" novalidate>
+            <label class="visually-hidden" for="regName">Nombre</label>
+            <input class="form-control mb-2" type="text" id="regName" placeholder="Nombre (opcional)">
+            <label class="visually-hidden" for="regEmail">Email</label>
+            <input class="form-control mb-2" type="email" id="regEmail" placeholder="Email" required>
+            <label class="visually-hidden" for="regPassword">Contraseña</label>
+            <input class="form-control mb-2" type="password" id="regPassword" placeholder="Contraseña" required>
+            <div class="d-grid"><button class="btn btn-cta" type="submit">Crear cuenta</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="modal fade" id="modalLogin" tabindex="-1" aria-hidden="true" aria-labelledby="modalLoginLabel">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalLoginLabel">Iniciar sesión</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formLogin" novalidate>
+            <label class="visually-hidden" for="loginEmail">Email</label>
+            <input class="form-control mb-2" type="email" id="loginEmail" placeholder="Email" required>
+            <label class="visually-hidden" for="loginPassword">Contraseña</label>
+            <input class="form-control mb-2" type="password" id="loginPassword" placeholder="Contraseña" required>
+            <div class="d-grid"><button class="btn btn-cta" type="submit">Entrar</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal "Mis planes" (vacío: el JS puede poblarlo con /api/results) -->
+  <div class="modal fade" id="modalMyPlans" tabindex="-1" aria-hidden="true" aria-labelledby="modalMyPlansLabel">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 id="modalMyPlansLabel" class="modal-title">Mis planes guardados</h5>
+          <button class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="myPlansList">
+            <!-- Aquí el JS inyectará la lista de resultados (GET /api/results) -->
+            <p class="small text-muted">Cargando...</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <main id="main">
+    <section id="home" class="hero-wrap" aria-labelledby="heroTitle">
+      <div class="hero-bg" id="heroBg" aria-hidden="true"></div>
+      <div class="hero-overlay" aria-hidden="true"></div>
+
+      <div class="container hero">
+        <div class="row align-items-center gy-4">
+          <div class="col-12 col-lg-6 order-2 order-lg-1" data-aos="fade-up">
+            <h1 id="heroTitle" class="hero-title">Entrena más inteligente. Transfórmate.</h1>
+            <p class="hero-sub">Planes de entrenamiento y dietas personalizados según tus objetivos y tus macros —
+              práctico, realista y basado en datos.</p>
+
+            <div class="hero-ctas d-flex gap-3 flex-wrap">
+              <a href="#macros" class="btn btn-cta">Calcular mis macros</a>
+              <a href="#about" class="btn btn-ghost">Conócenos</a>
+            </div>
+
+            <div class="row mt-4 hero-cards gx-3">
+              <div class="col-12 col-sm-6">
+                <div class="card p-3">
+                  <h6 class="mb-1">Planes personalizados</h6>
+                  <p class="small mb-0">Entrenamientos adaptados a tu nivel y objetivos.</p>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6 mt-3 mt-sm-0">
+                <div class="card p-3">
+                  <h6 class="mb-1">Soporte real</h6>
+                  <p class="small mb-0">Ajustes según progreso y feedback.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-lg-6 order-1 order-lg-2" data-aos="fade-up" data-aos-delay="120">
+            <div class="card p-0 mockup-card" style="overflow:hidden; border-radius:14px;">
+              <img src="src/img/portada.jpg" alt="Gimnasio y entrenamiento" class="w-100 h-100" loading="lazy"
+                style="object-fit:cover; display:block; min-height:220px;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="section section--white" aria-labelledby="aboutTitle">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-6" data-aos="fade-right">
+            <h2 id="aboutTitle" class="section-title">Sobre nosotros</h2>
+            <p class="small-muted">Creamos planes de entrenamiento y nutrición basados en datos y adaptados a tus
+              macros. Nuestro enfoque es práctico: resultados medibles con un plan sostenible.</p>
+            <div class="mt-3"><a class="btn btn-ghost" href="#services">Nuestros servicios</a></div>
+          </div>
+          <div class="col-lg-6" data-aos="fade-left">
+            <div class="glass p-3">
+              <div class="row g-3">
+                <div class="col-6">
+                  <h6 class="mb-1">Visión</h6>
+                  <p class="small-muted mb-0">Fitness accesible y efectivo.</p>
+                </div>
+                <div class="col-6 d-flex align-items-center justify-content-center">
+                  <img src="src/img/vision.png" alt="Imagen sobre visión" style="width:100%; border-radius:8px;"
+                    loading="lazy">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section id="services" class="section" aria-labelledby="servicesTitle">
+      <div class="container">
+        <h2 id="servicesTitle" class="section-title" data-aos="fade-up">Servicios</h2>
+        <div class="row g-4">
+          <!-- Servicios: repite el patrón; imágenes con lazy -->
+          <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="40">
+            <article class="service-card text-center h-100" aria-labelledby="s1">
+              <img src="src/img/entrenamiento.jpg" alt="Entrenamiento personal" loading="lazy"
+                style="width:100%; height:140px; object-fit:cover; border-radius:8px; margin-bottom:.8rem;">
+              <h3 id="s1" class="h6 mb-1">Entrenamiento personal</h3>
+              <p class="small text-muted">Programas para fuerza y masa.</p>
+            </article>
+          </div>
+
+          <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="80">
+            <article class="service-card text-center h-100" aria-labelledby="s2">
+              <img src="src/img/cardio.jpg" alt="HIIT y cardio" loading="lazy"
+                style="width:100%; height:140px; object-fit:cover; border-radius:8px; margin-bottom:.8rem;">
+              <h3 id="s2" class="h6 mb-1">HIIT & Cardio</h3>
+              <p class="small text-muted">Sesiones de alta intensidad.</p>
+            </article>
+          </div>
+
+          <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="120">
+            <article class="service-card text-center h-100" aria-labelledby="s3">
+              <img src="src/img/nutricion3.jpg" alt="Nutrición adaptable" loading="lazy"
+                style="width:100%; height:140px; object-fit:cover; border-radius:8px; margin-bottom:.8rem;">
+              <h3 id="s3" class="h6 mb-1">Nutrición adaptable</h3>
+              <p class="small text-muted">Dietas realistas basadas en macros.</p>
+            </article>
+          </div>
+
+          <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="160">
+            <article class="service-card text-center h-100" aria-labelledby="s4">
+              <img src="src/img/seguimiento.jpg" alt="Seguimiento" loading="lazy"
+                style="width:100%; height:140px; object-fit:cover; border-radius:8px; margin-bottom:.8rem;">
+              <h3 id="s4" class="h6 mb-1">Seguimiento</h3>
+              <p class="small text-muted">Revisiones y ajustes mensuales.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIOS -->
+    <section id="testimonials" class="section section--white" aria-labelledby="testimonialsTitle">
+      <div class="container">
+        <h2 id="testimonialsTitle" class="section-title" data-aos="fade-up">Testimonios</h2>
+
+        <div id="carouselTestimonials" class="carousel slide" data-bs-ride="carousel" data-aos="fade-up"
+          aria-label="Carrusel de testimonios">
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+              <div class="testimonial d-flex gap-3 align-items-center">
+                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=60&w=400&auto=format&fit=crop"
+                  class="avatar" alt="Avatar Laura G." loading="lazy">
+                <div>
+                  <strong>Laura G.</strong>
+                  <p class="small text-muted mb-0">"Perdí 6 kg en 3 meses. Plan realista y fácil de seguir."</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="carousel-item">
+              <div class="testimonial d-flex gap-3 align-items-center">
+                <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=60&w=400&auto=format&fit=crop"
+                  class="avatar" alt="Avatar Carlos M." loading="lazy">
+                <div>
+                  <strong>Carlos M.</strong>
+                  <p class="small text-muted mb-0">"Entrenamientos que se ajustaban a mi horario y macros."</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="carousel-item">
+              <div class="testimonial d-flex gap-3 align-items-center">
+                <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=60&w=400&auto=format&fit=crop"
+                  class="avatar" alt="Avatar Marina R." loading="lazy">
+                <div>
+                  <strong>Marina R.</strong>
+                  <p class="small text-muted mb-0">"La dieta es variada y me ayudó a mejorar mi energía."</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="carousel-control-prev" type="button" data-bs-target="#carouselTestimonials"
+            data-bs-slide="prev" aria-label="Anterior">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#carouselTestimonials"
+            data-bs-slide="next" aria-label="Siguiente">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MACROS -->
+    <section id="macros" class="section" aria-labelledby="macrosTitle">
+      <div class="container">
+        <h2 id="macrosTitle" class="section-title" data-aos="fade-up">Mide tus macros</h2>
+        <div class="row g-4 align-items-start">
+          <div class="col-lg-6" data-aos="fade-right">
+            <div class="glass">
+              <form id="macrosForm" novalidate>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <label class="form-label small text-muted" for="sex">Sexo</label>
+                    <select id="sex" class="form-control" required>
+                      <option value="male">Hombre</option>
+                      <option value="female">Mujer</option>
+                    </select>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small text-muted" for="goal">Objetivo</label>
+                    <select id="goal" class="form-control">
+                      <option value="maintain">Mantener</option>
+                      <option value="loss">Perder</option>
+                      <option value="gain">Ganar</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row g-2 mt-3">
+                  <div class="col-4">
+                    <label class="form-label small text-muted" for="age">Edad</label>
+                    <input id="age" class="form-control" type="number" placeholder="Años" min="10" max="120" required>
+                  </div>
+                  <div class="col-4">
+                    <label class="form-label small text-muted" for="weight">Peso (kg)</label>
+                    <input id="weight" class="form-control" type="number" placeholder="kg" step="0.1" required>
+                  </div>
+                  <div class="col-4">
+                    <label class="form-label small text-muted" for="height">Altura (cm)</label>
+                    <input id="height" class="form-control" type="number" placeholder="cm" min="50" max="250" required>
+                  </div>
+                </div>
+
+                <div class="row g-2 mt-3">
+                  <div class="col-12">
+                    <label class="form-label small text-muted" for="activity">Nivel de actividad</label>
+                    <select id="activity" class="form-control">
+                      <option value="1.2">Sedentario</option>
+                      <option value="1.375">Ligero</option>
+                      <option value="1.55" selected>Moderado</option>
+                      <option value="1.725">Activo</option>
+                      <option value="1.9">Muy activo</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                  <button class="btn btn-cta" type="submit">Calcular</button>
+                  <button id="resetBtn" type="button" class="btn btn-ghost">Limpiar</button>
+                </div>
+              </form>
+              <small class="d-block mt-2 small-muted">Resultados orientativos. Consulta con un profesional si tienes
+                condiciones médicas.</small>
+            </div>
+          </div>
+
+          <div class="col-lg-6" data-aos="fade-left">
+            <div id="resultCard" class="result-card d-none" aria-live="polite">
+              <h6>Resultados</h6>
+              <p id="caloriesText" class="mb-2 small text-muted"></p>
+              <div id="macrosList" class="mb-3"></div>
+
+              <!--<h6>Plan de entrenamiento (ejemplo)</h6>
+              <ul class="small mb-0">
+                <li>Día 1: Full body (fuerza)</li>
+                <li>Día 2: Cardio moderado</li>
+                <li>Día 3: Tren superior (hipertrofia)</li>
+                <li>Día 4: Descanso / movilidad</li>
+                <li>Día 5: Tren inferior (fuerza)</li>
+                <li>Día 6: HIIT corto</li>
+                <li>Día 7: Recuperación</li>
+              </ul>-->
+
+              <!-- Botón guardar: el JS también intentará crear uno si falta -->
+              <div class="mt-3">
+                <button type="button" class="btn btn-outline-dark btn-sm save-plan-btn"
+                  aria-label="Guardar plan">Guardar plan</button>
+                <button type="button" class="btn btn-link btn-sm" data-bs-toggle="modal"
+                  data-bs-target="#modalMyPlans">Ver mis planes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section section--white" aria-labelledby="contactTitle">
+      <div class="container" style="max-width:980px">
+        <h2 id="contactTitle" class="section-title" data-aos="fade-up">Contacto</h2>
+        <div class="row g-4">
+          <div class="col-lg-7" data-aos="fade-right">
+            <div class="glass">
+              <form id="contactForm" method="POST" action="contact.php" novalidate>
+                <div class="row g-2">
+                  <div class="col-md-6"><input type="text" name="name" class="form-control" placeholder="Tu nombre"
+                      required></div>
+                  <div class="col-md-6"><input type="email" name="email" class="form-control" placeholder="Tu email"
+                      required></div>
+                </div>
+                <div class="mt-2"><input type="text" name="subject" class="form-control"
+                    placeholder="Asunto (opcional)"></div>
+                <div class="mt-2"><textarea name="message" class="form-control" rows="5" placeholder="Tu mensaje"
+                    required></textarea></div>
+                <div class="mt-3 d-grid"><button class="btn btn-cta" type="submit">Enviar mensaje</button></div>
+              </form>
+              <small class="d-block mt-2 small-muted">Si no tienes PHP, el envío será simulado por JavaScript.</small>
+            </div>
+          </div>
+
+          <div class="col-lg-5" data-aos="fade-left">
+            <div class="glass">
+              <h6>Datos de contacto</h6>
+              <p class="small mb-1">Email: contacto@miplanfitness.example</p>
+              <p class="small mb-1">Tel: +34 600 000 000</p>
+              <hr>
+              <h6 class="mb-1">Horario</h6>
+              <p class="small mb-0">Lun - Vie: 07:00 - 23:00</p>
+              <p class="small">Sáb - Dom: 10:00 - 20:00</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6 text-start"><strong>MiplanFitness</strong>
+          <div class="small text-muted">Entrenamiento y nutrición personalizados</div>
+        </div>
+        <div class="col-md-6 text-end"><small>© <span id="year"></span> — Términos y condiciones</small></div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Pequeño script inline para comportamiento de UI (defer implícito al final) -->
+  <script>
+    // Inicializaciones AOS
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.AOS) AOS.init({ once: true, duration: 700 });
+
+      // Año en footer
+      const y = new Date().getFullYear();
+      document.getElementById('year').textContent = y;
+
+      // Navbar: cambiar a 'solid' al hacer scroll
+      const nav = document.getElementById('siteNav');
+      const threshold = 80;
+      const onScroll = () => {
+        if (window.scrollY > threshold) {
+          nav.classList.add('solid');
+          nav.classList.remove('default');
+        } else {
+          nav.classList.add('default');
+          nav.classList.remove('solid');
+        }
+      };
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      // Cerrar collapse al hacer click en link (mejora UX móvil)
+      const navCollapse = document.getElementById('navMain');
+      navCollapse.querySelectorAll('a.nav-link').forEach(a => {
+        a.addEventListener('click', () => {
+          const bsCollapse = bootstrap.Collapse.getInstance(navCollapse);
+          if (bsCollapse && window.getComputedStyle(document.querySelector('.navbar-toggler')).display !== 'none') {
+            bsCollapse.hide();
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
