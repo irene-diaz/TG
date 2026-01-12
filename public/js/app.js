@@ -61,14 +61,13 @@ function generarMenuDiario(macrosObjetivo, dia) {
         const platosEnCategoria = foodData[categoria];
         if (!platosEnCategoria) {
             console.warn(`No hay platos para la categoría: ${categoria}`);
-            return { nombre: 'Plato no disponible', porcion: 200, macros: { protein: 0, fat: 0, carbs: 0, kcal: 0 } };
+            return { nombre: 'Plato no disponible', macros: { protein: 0, fat: 0, carbs: 0, kcal: 0 } };
         }
 
         const platoKeys = Object.keys(platosEnCategoria);
         const platoKey = platoKeys[Math.floor(Math.random() * platoKeys.length)];
         const data = platosEnCategoria[platoKey];
-        const porcion = 200; // g, asumiendo un plato estándar
-        return { nombre: platoKey.replace(/_/g, ' '), porcion, macros: data };
+        return { nombre: platoKey.replace(/_/g, ' '), macros: data };
     }
     // Generar comidas
     // Generar comidas (cada una es un plato completo)
@@ -344,7 +343,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         menuHtml += `<div class="dia-menu"><h7>${dia}</h7>`;
                         for (const [comida, platos] of Object.entries(comidas)) {
                             const plato = platos[0];
-                            menuHtml += `<p><strong>${comida.charAt(0).toUpperCase() + comida.slice(1)}:</strong> ${plato.nombre} (${plato.porcion}g).</p>`;
+                            menuHtml += `<p><strong>${comida.charAt(0).toUpperCase() + comida.slice(1)}:</strong> ${plato.nombre}.</p>`;
                         }
                         menuHtml += '</div>';
                     }
@@ -775,7 +774,7 @@ function safeInitAuthAndApi() {
                     for (const [dia, comidas] of Object.entries(rd.menu)) {
                         inner += `<div><strong>${dia}:</strong>`;
                         for (const [comida, platos] of Object.entries(comidas)) {
-                            inner += `<p>${comida}: ${platos[0].nombre} (${platos[0].porcion}g).</p>`;
+                            inner += `<p>${comida}: ${platos[0].nombre}</p>`;
                         }
                         inner += '</div>';
                     }

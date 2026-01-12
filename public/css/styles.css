@@ -138,6 +138,14 @@ footer{background:#0b1220;color:#cbd5e1;padding:2rem 0}
 @media (max-width:767px){.hero{padding:5rem 0}body{padding-top:64px}.hero-title{font-size:1.6rem}}
 @media (max-width:767px){body{padding-top:72px}}
 @media (max-width:576px){.hero-cards .card{padding:.9rem}}
+/* Más espacio lateral en Home (hero) solo en móvil */
+@media (max-width: 576px) {
+  #home .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
 
 /* mockup image */
 .mockup-card img{height:100%;max-height:420px}
