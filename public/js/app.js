@@ -268,6 +268,7 @@ function generarPlanEntrenamiento(formData) {
     return semana;
 }
 
+//HELPE Y EVENT LISTENERS DEL DOM(DENTRO DE DOMCONTENTLOADED)
 
 // Helper seguro (Función helper para obtener elementos del DOM de forma segura (devuelve null si no existe).)
 function $id(id) { return document.getElementById(id) || null; }
@@ -276,7 +277,7 @@ function $id(id) { return document.getElementById(id) || null; }
 1. Carga de foodData.
 2. Inicialización de AOS.
 3. Listeners para navbar (cambio de fondo al scroll), parallax en hero, formulario de macros (calcula y muestra resultados, genera menú y plan de entrenamiento, guarda 
-4. en localStorage y perfil), reset, contacto, y colapsables móviles.
+en localStorage y perfil), reset, contacto, y colapsables móviles.
 5. Instala un botón "Guardar plan" en resultCard para enviar el plan a la API (/api/results).*/
 document.addEventListener('DOMContentLoaded', async () => {
     await loadFoodData(); // Cargar datos antes de inicializar
@@ -321,7 +322,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (e) { console.error('Parallax setup error:', e); }
 
-    // MACROS: listener de submit (si existe)
     // MACROS: listener de submit (si existe)
     try {
         const macrosForm = $id('macrosForm');
@@ -509,6 +509,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('Guardar plan payload:', payload);
             console.log('Token:', token);
 
+            //Bearer=Es un esquema de autenticación estándar (definido en RFC 6750) para enviar tokens de acceso, como JWT. "Bearer" significa "portador" 
             try {
                 const resp = await fetch(`${API_BASE}/results`, {
                     method: 'POST',
@@ -543,13 +544,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 }); // end DOMContentLoaded
 
-// ---------- API + Auth helpers (fuera de DOMContentLoaded, disponibles antes si hace falta) ----------
+//GESTIONAR AUTENTIFICACION DE USUARIOS, GUARDAR/RECUPERAR PERFILES Y CONECTAR CON EL BACKEND
+
+//Gestionar autenticación de usuarios, guardar/recuperar perfiles y conectar con el backend.
+
+//Define constantes y helpers para manejar tokens JWT (guardar, obtener, logout) usando localStorage.
 const API_BASE = 'http://localhost:4000/api';
 
 function saveToken(token) { try { localStorage.setItem('miplan_token', token); } catch (e) { console.warn('No se pudo guardar token', e); } }
 function getToken() { try { return localStorage.getItem('miplan_token'); } catch (e) { return null; } }
 function logout() { try { localStorage.removeItem('miplan_token'); } catch (e) { } location.reload(); }
 
+//Envía datos de perfil al servidor via POST a /api/profile
 async function saveProfile(dataObj) {
     try {
         const token = getToken();
@@ -570,6 +576,7 @@ async function saveProfile(dataObj) {
 
 // Carga perfil y register/login: los enganchamos en una función y se ejecuta después del DOM
 function safeInitAuthAndApi() {
+    // Listeners para registro, login, carga de perfil, y mostrar logout en nav.
     // Register
     try {
         const formRegister = $id('formRegister');
@@ -666,9 +673,16 @@ function safeInitAuthAndApi() {
     try { loadProfileToUI(); } catch (e) { console.error('loadProfileToUI error', e); }
 }
 
-// ---------- Mis planes: listar, ver y eliminar (integrar en public/js/app.js) ----------
+//FUNCIONALIDAD DE "MIS PLANES"(listar, ver y eliminar)
+
+/*
+1. Función autoejecutable que inicializa la funcionalidad de "Mis planes".
+2. Incluye: Renderizado de lista de planes guardados (desde /api/results), vista de detalles (con resumen amigable y opciones de descarga/copia JSON), 
+eliminación con confirmación, y manejo de paginación básica.
+3. Se activa al abrir el modal #modalMyPlans.
+*/
 (function initMyPlansFeature() {
-    // Referencias
+    // Referencias al modal
     const modalEl = document.getElementById('modalMyPlans');
     const myPlansList = document.getElementById('myPlansList');
     if (!modalEl || !myPlansList) return; // nada que hacer si no existe el modal en HTML
@@ -691,7 +705,7 @@ function safeInitAuthAndApi() {
       `;
     }
 
-    // Renderiza un item de plan en la lista
+    //  Funciones para renderizar items, cargar lista desde API, ver detalles, eliminar, etc.
     function renderPlanItem(item) {
         // item: { id, summary, created_at }
         const container = document.createElement('div');
