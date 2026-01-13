@@ -1,6 +1,7 @@
-// public/js/app.js (PARCHE: inicializar después de DOMContentLoaded)
+//PREPARAR DATOS Y LIBRERIAS ANTES DE INTERACTUAR CON EL DOM
 
-// Cargar foodData desde JSON
+/* Cargar foodData desde JSON Función asíncrona que carga datos de alimentos desde un archivo JSON (foodData.json) usando fetch. 
+Si falla, usa un fallback con datos básicos. Esto alimenta la generación de menús.*/
 let foodData = {}; // Variable global para almacenar los datos
 async function loadFoodData() {
     try {
@@ -18,7 +19,8 @@ async function loadFoodData() {
     }
 }
 
-// Init AOS (se inicializa dentro de DOMContentLoaded más abajo también por seguridad)
+/* Init AOS (Inicializa la librería AOS (Animate On Scroll) para animaciones, con verificaciones de seguridad para evitar errores si no está cargada.
+se inicializa dentro de DOMContentLoaded más abajo también por seguridad)*/
 function safeInitAOS() {
     try {
         if (typeof AOS !== 'undefined' && AOS && typeof AOS.init === 'function') {
@@ -31,8 +33,12 @@ function safeInitAOS() {
     }
 }
 
-// Calculador (no requiere DOM)
+//LOGICA CENTRAL PARA GENERAR PLANES NUTRICIONALES Y DE ENTRENAMIENTO BASADO EN INPUTS DEL USUARIO
+
+/*Calculador (no requiere DOM, Calcula calorías diarias (BMR, TDEE) y distribución de macros (proteínas, grasas, carbohidratos)
+ usando fórmulas como Mifflin-St Jeor, ajustadas por objetivo (pérdida, ganancia o mantenimiento).)*/
 function calcularMacros({ sex, age, weight, height, activityFactor, goal }) {
+    // Calcula BMR, TDEE y macros basados en fórmulas estándar
     const bmr = (sex === 'male') ? 10 * weight + 6.25 * height - 5 * age + 5 : 10 * weight + 6.25 * height - 5 * age - 161;
     const tdee = bmr * activityFactor;
     let calories = (goal === 'loss') ? Math.round(tdee * 0.85) : (goal === 'gain' ? Math.round(tdee * 1.15) : Math.round(tdee));
@@ -45,8 +51,9 @@ function calcularMacros({ sex, age, weight, height, activityFactor, goal }) {
     return { bmr: Math.round(bmr), tdee: Math.round(tdee), calories, proteinG, proteinCal, fatG, fatCal, carbsG };
 }
 
-// Función para generar un menú diario basado en macros objetivo
+// Función para generar un menú diario basado en macros objetivo(Distribuye macros en comidas (desayuno, almuerzo, etc.) y selecciona platos aleatorios de foodData por categoría.)
 function generarMenuDiario(macrosObjetivo, dia) {
+    // // Distribuye macros en comidas y selecciona platos aleatorios de foodData.
     // Distribución aproximada: 30% desayuno, 40% almuerzo, 20% cena, 10% snacks
     const distribucion = {
         desayuno: { protein: macrosObjetivo.proteinG * 0.3, fat: macrosObjetivo.fatG * 0.3, carbs: macrosObjetivo.carbsG * 0.3 },
@@ -69,12 +76,12 @@ function generarMenuDiario(macrosObjetivo, dia) {
         const data = platosEnCategoria[platoKey];
         return { nombre: platoKey.replace(/_/g, ' '), macros: data };
     }
-    // Generar comidas
+
     // Generar comidas (cada una es un plato completo)
     const menu = {
         desayuno: [seleccionarPlato('desayuno')],
         almuerzo: [seleccionarPlato('almuerzo')],
-        media_manana: [seleccionarPlato('media_manana')],  // Corregido: sin ñ
+        media_manana: [seleccionarPlato('media_manana')],
         cena: [seleccionarPlato('cena')],
         merienda: [seleccionarPlato('merienda')],
         snacks: [seleccionarPlato('snacks')]
@@ -86,14 +93,17 @@ function generarMenuDiario(macrosObjetivo, dia) {
 // Función para generar menú semanal (7 días)
 function generarMenuSemanal(macrosObjetivo) {
     const semana = {};
+    // Llama a generarMenuDiario para cada día.
     for (let dia = 1; dia <= 7; dia++) {
         semana[`Día ${dia}`] = generarMenuDiario(macrosObjetivo, dia);
     }
     return semana;
 }
 
-// Nueva función: generar plan de entrenamiento semanal personalizado
+/* Funcion para generar plan de entrenamiento semanal personalizado (Genera un plan de ejercicios semanal personalizado, considerando factores como objetivo, sexo, edad y 
+actividad. Incluye días de descanso y ajustes (ej. baja intensidad para mayores).)*/
 function generarPlanEntrenamiento(formData) {
+    // Genera un plan semanal de ejercicios basado en objetivo, edad, peso, etc., con ajustes personalizados.
     const { goal, activityFactor, age, weight, height, sex } = formData;
     const semana = {};
 
@@ -259,9 +269,15 @@ function generarPlanEntrenamiento(formData) {
 }
 
 
-// Helper seguro
+// Helper seguro (Función helper para obtener elementos del DOM de forma segura (devuelve null si no existe).)
 function $id(id) { return document.getElementById(id) || null; }
 
+/*Espera a que el DOM cargue, luego ejecuta inicializaciones. Incluye:
+1. Carga de foodData.
+2. Inicialización de AOS.
+3. Listeners para navbar (cambio de fondo al scroll), parallax en hero, formulario de macros (calcula y muestra resultados, genera menú y plan de entrenamiento, guarda 
+4. en localStorage y perfil), reset, contacto, y colapsables móviles.
+5. Instala un botón "Guardar plan" en resultCard para enviar el plan a la API (/api/results).*/
 document.addEventListener('DOMContentLoaded', async () => {
     await loadFoodData(); // Cargar datos antes de inicializar
     // Inicializa AOS si está disponible

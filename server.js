@@ -56,7 +56,7 @@ app.get('/', (req, res) => {
 });
 
 
-// crear token(clave temporal)
+// crear token(Genera un JWT con datos del usuario (ID y email), firmado con la clave secreta y con expiración de 7 días.)
 function createToken(user) {
     return jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: TOKEN_EXPIRES });
 }
@@ -75,7 +75,10 @@ function authMiddleware(req, res, next) {
     });
 }
 
-// Registro(Recibe email y contraseña, cifra la contraseña con bcrypt, guarda el usuario en la BD y evuelve un token)
+//MANEJO DE ENDPOINTS
+
+/* Registro(Recibe email, contraseña y nombre. Encripta la contraseña con bcrypt (10 rondas de sal para seguridad), inserta en la BD y 
+devuelve un token si es exitoso. Maneja errores como email duplicado.)*/
 app.post('/api/register', async (req, res) => {
     try {
         const { email, password, name } = req.body;
@@ -99,7 +102,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// Login(Busca el usuario por email, compara la contraseña cifrada y devuelve un token si es correcto)
+// Login(Busca el usuario por email, compara la contraseña encriptada y devuelve un token si coincide. Devuelve error si no existe o no coincide.)
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
@@ -117,7 +120,7 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Obtener perfil del usuario(Guarda y recupera los datos del formulario, usa JSON para flexibilidad y protegido por autenticación)
+// Obtener perfil del usuario(recupera los datos del formulario(BD), usa JSON para flexibilidad y protegido por autenticación)
 app.get('/api/profile', authMiddleware, (req, res) => {
     const userId = req.user.id;
     db.get('SELECT data, updated_at FROM profiles WHERE user_id = ?', [userId], (err, row) => {
@@ -132,7 +135,7 @@ app.get('/api/profile', authMiddleware, (req, res) => {
     });
 });
 
-// Guarda planes personalizados
+// Guarda planes personalizados( Guarda o actualiza el perfil (datos en JSON). Usa INSERT OR UPDATE para manejar si ya existe.)
 app.post('/api/profile', authMiddleware, (req, res) => {
     const userId = req.user.id;
     const dataObj = req.body.data || {};
@@ -169,7 +172,7 @@ app.post('/api/profile', authMiddleware, (req, res) => {
     );
 });
 
-// endpoint para obtener info del usuario
+// endpoint para obtener info del usuario(Devuelve información básica del usuario autenticado (ID, email, nombre, fecha de creación).
 app.get('/api/me', authMiddleware, (req, res) => {
     db.get('SELECT id, email, name, created_at FROM users WHERE id = ?', [req.user.id], (err, row) => {
         if (err) return res.status(500).json({ error: 'Error DB' });
@@ -177,10 +180,12 @@ app.get('/api/me', authMiddleware, (req, res) => {
     });
 });
 
+//Define el puerto (4000 por defecto o desde variable de entorno)
 const PORT = process.env.PORT || 4000;
+
 // ------------------ RESULTS endpoints (protected) ------------------
 
-// Crear resultado (guardar plan)
+// Crear resultado (Guarda un nuevo resultado (datos en JSON, resumen opcional)
 app.post('/api/results', authMiddleware, (req, res) => {
     try {
         const userId = req.user.id;
@@ -206,7 +211,7 @@ app.post('/api/results', authMiddleware, (req, res) => {
     }
 });
 
-// Listar resultados del usuario (paginado)
+// Lista resultados del usuario con paginación (página y límite por página).
 app.get('/api/results', authMiddleware, (req, res) => {
     try {
         const userId = req.user.id;
@@ -231,7 +236,7 @@ app.get('/api/results', authMiddleware, (req, res) => {
     }
 });
 
-// Obtener detalle de un resultado (comprueba owner)
+// Obtiene detalles de un resultado específico (solo si pertenece al usuario).
 app.get('/api/results/:id', authMiddleware, (req, res) => {
     try {
         const userId = req.user.id;
@@ -251,7 +256,7 @@ app.get('/api/results/:id', authMiddleware, (req, res) => {
     }
 });
 
-// Eliminar resultado (owner only)
+//  Elimina un resultado (solo si pertenece al usuario).
 app.delete('/api/results/:id', authMiddleware, (req, res) => {
     try {
         const userId = req.user.id;
@@ -270,5 +275,5 @@ app.delete('/api/results/:id', authMiddleware, (req, res) => {
     }
 });
 
-//Arranca la API en el puerto indicado(variable la cual hemos definido antes)
+//Arranca la API en el puerto indicado(variable la cual hemos definido antes), y muestra ese mensaje por consola
 app.listen(PORT, () => console.log(`API escuchando en http://localhost:${PORT}`));
